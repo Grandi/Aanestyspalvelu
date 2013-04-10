@@ -3,20 +3,24 @@
 	<head>
 		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 		<title>Äänestyspalvelu</title>
-		<link rel="stylesheet" type="text/css" href="tyyli.css" />    
+		<link rel="stylesheet" type="text/css" href="tyyli.css" />
+		<script src="javascript.js"></script>
 	</head>
 	<body>
 		<h1>Äänestyspalvelu</h1>
-		<div id="linkkipalkki">
-			
+		<!--<div id="linkkipalkki">
 			<div style="clear: both"></div>
-		</div>
+		</div>-->
 		<div id="sisalto">
 			<?php
-				if(isset($_GET['rekisteroidy']))
+				if(isset($_GET['aanestys']))
+					naytaAanestyssivu($_GET['aanestys']);
+				else if(isset($_GET['rekisteroidy']))
 					include "lomakkeet/rekisteroitymislomake.php";
-				else
-					include "testisisalto.php";
+				else {
+					echo '<h2>Äänestykset</h2>';
+					listaaAanestykset();
+				}
 			?>
 		</div>
 		<div id="sivupalkki">
@@ -29,7 +33,6 @@
 			?>
 		</div>
 		<div style="clear: both"></div>
-		<div id="footer">
-		</div>
+		<div id="footer"></div>
 	</body>
 </html>

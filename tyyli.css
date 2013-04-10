@@ -7,12 +7,12 @@ html {
 body {
     /*border: 2px solid #ccccff;*/
     padding: 0;
-    max-width: 900px;
+    max-width: 1024px;
     margin-top: 50px;
     margin-bottom: 50px;
     margin-left: auto;
     margin-right: auto;
-    font-family: verdana, arial;
+    font-family: verdana, DejaVu Sans, arial;
     font-size: 13px;
 }
 
@@ -37,7 +37,8 @@ h1 {
 }
 
 #sisalto {
-    max-width: 600px;
+    max-width: 700px;
+	width:100%;
 }
 
 #footer {
@@ -60,11 +61,12 @@ h1 {
 }
 
 #aanestyslaatikko {
-    background: #eeeeee;
+    background: #ffeeee;
     width: 100%;
     padding: 10px;
     padding-top: 20px;
     margin-top: 25px;
+	border: 1px solid red;
 }
 
 a {
@@ -93,4 +95,20 @@ input {
 	font-weight: bolder;
 	padding: 10px;
 	background: rgb(255,230,230);
+}
+
+#aanestys_listassa {
+	padding: 5px;
+	padding-left: 20px;
+	background: rgb(230,255,230);
+	margin-bottom: 10px;
+}
+
+table {
+	width: 100%;
+}
+
+td {
+	padding: 10px;
+	padding-right: 20px;
 }

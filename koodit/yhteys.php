@@ -1,4 +1,5 @@
 <?php
+
 	/**
 	 * Alustaa PostgreSQL-tietokantayhteyden.
 	 */
