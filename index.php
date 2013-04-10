@@ -1,6 +1,4 @@
 <?php
-	if($_SERVER['REMOTE_ADDR'] != '80.223.95.21')
-		die("Sivu on teon alla. Tule myöhemmin takaisin.");
 
 	session_start();
 
