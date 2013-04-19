@@ -7,11 +7,13 @@
 		global $yhteys;
 
 		try {
-			$yhteys = new PDO("pgsql:host=localhost;dbname=rara", "rara", file_get_contents("/home/rara/.psql_password"));
+			$yhteys = new PDO("pgsql:host=localhost;dbname=rara", "rara",
+				file_get_contents("/home/rara/.psql_password"));
 		} catch(PDOException $poikkeus) {
 			die("<b>Tietokantaan ei saatu yhteyttä:</b> " . $poikkeus->getMessage());
 		}
 		
+		$yhteys->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 		$yhteys->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	}
 	

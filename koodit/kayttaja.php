@@ -8,11 +8,49 @@
 	function kirjautumistiedotOvatOikein($kayttajanimi, $salasana) {	
 		
 		$tulos = lahetaSQLKysely("
-			SELECT * FROM kayttaja WHERE kayttajanimi = ?",
+			SELECT * FROM kayttaja
+			WHERE kayttajanimi = ?",
 			array($kayttajanimi));
 		
 		$rivi = $tulos->fetch();
 		return $rivi["salasana"] == md5($salasana);
+	}
+	
+	/**
+	 * Päivittää kirjautumisyritysten määrän sivun ladanneelle IP-osoitteelle.
+	 * @param $uusiMaara Se määrä, joka tahdotaan asettaa kirjautumisyrityksiksi.
+	 */
+	function paivitaKirjautumisyritystenMaara($uusiMaara) {
+		
+		lahetaSQLKysely("
+			UPDATE kirjautumisyritykset
+			SET maara = ?
+			WHERE ip = ?",
+			array($uusiMaara, $_SERVER["REMOTE_ADDR"]));
+	}
+	
+	/**
+	 * Kertoo kuinka monta kertaa sivun ladannut henkilö on yrittänyt virheellisesti
+	 * kirjautua sisään.
+	 * @return Virheellisten yritysten määrä kokonaislukuna.
+	 */
+	function kirjautumisyritystenMaara() {
+
+		$tulos = lahetaSQLKysely("
+			SELECT * FROM kirjautumisyritykset
+			WHERE ip = ?",
+			array($_SERVER["REMOTE_ADDR"]));
+			
+		if($tulos->rowCount() == 0) {
+			lahetaSQLKysely("
+				INSERT INTO kirjautumisyritykset (ip, maara)
+				VALUES (?, 0)",
+				array($_SERVER["REMOTE_ADDR"]));
+			return 0;	
+		}
+		
+		$rivi = $tulos->fetch();
+		return $rivi["maara"];
 	}
 	
 	/**
@@ -25,16 +63,15 @@
 		if(isset($_SESSION["kayttajanimi"]))
 			return "Olet jo kirjautunut.";
 		
-		if($_SESSION["kirjautumisyritykset"] >= 100)
-			return "Olet yrittänyt kirjautumista virheellisesti liian monta kertaa.";
-		
-		if(!kirjautumisTiedotOvatOikein($kayttajanimi, $salasana)) {
-			$_SESSION["kirjautumisyritykset"]++;
+		$kirjautumisyritykset = kirjautumisyritystenMaara();
+
+		if($kirjautumisyritykset >= 3 || !kirjautumisTiedotOvatOikein($kayttajanimi, $salasana)) {
+			paivitaKirjautumisyritystenMaara($kirjautumisyritykset + 1);
 			return "Käyttäjätunnus tai salasana on väärin.";
 		}
-			
+	
 		$_SESSION["kayttajanimi"] = $kayttajanimi;
-		$_SESSION["kirjautumisyritykset"] = 0;
+		paivitaKirjautumisyritystenMaara(0);
 		return "";
 	}
 	
@@ -67,7 +104,8 @@
 			return "Salasana ei vastaa vaatimuksia.";
 
 		$tulos = lahetaSQLKysely("
-			SELECT * FROM kayttaja WHERE kayttajanimi = ?",
+			SELECT * FROM kayttaja
+			WHERE kayttajanimi = ?",
 			array($kayttajanimi));
 		
 		if($tulos->rowCount() > 0)
@@ -82,7 +120,8 @@
 	function rekisteroi($kayttajanimi, $salasana) {
 		
 		$tulos = lahetaSQLKysely("
-			INSERT INTO kayttaja (kayttajanimi, salasana) VALUES (?, ?)",
+			INSERT INTO kayttaja (kayttajanimi, salasana)
+			VALUES (?, ?)",
 			array($kayttajanimi, md5($salasana)));
 	}
 	

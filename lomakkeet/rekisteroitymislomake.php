@@ -10,7 +10,7 @@
 	
 	<p>
 		<label><b>Käyttäjänimi.</b> 4-16 merkkiä. Saa sisältää isoja ja pieniä kirjaimia A-Z, alaviivoja _, sekä numeroita 0-9.</label> <br />
-		<input name="kayttajanimi" />
+		<input name="kayttajanimi" style="width:100%;" />
 	</p>
 	
 	<p>

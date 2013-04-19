@@ -69,16 +69,71 @@
 	}
 	
 	/**
+	 * Käsittelee käyttäjän pyynnön poistaa oman äänestyksensä.
+	 * Huom: Näitä virheilmoituksia ei näytetä käyttäjälle, koska ovat oikeastaan täysin turhia.
+	 * @return Tyhjä merkkijono, jos äänestyksen poistaminen onnistui. Muutoin virheilmoitus.
+	 */
+	function kasitteleAanestyksenPoistopyynto() {
+		
+		if(isset($_GET['poista_aanestys'])) {
+
+			if(!$_SESSION['kayttajanimi'])
+				return "Et voi poistaa äänestystä ellet ole kirjautuneena sisään!";
+				
+			$tulos = lahetaSQLKysely(
+				"SELECT * FROM aanestys
+				WHERE id = ?",
+				array($_GET['poistettava']));
+			
+			if($tulos->rowCount() == 0)
+				return "Moista äänestystä ei ole olemassa!";
+			
+			$rivi = $tulos->fetch();
+			if($_SESSION['kayttajanimi'] != $rivi["tekija"])
+				return "Vain äänestyksen tekijä voi poistaa äänestyksen.";
+
+			poistaAanestys($_GET['poistettava']);
+			header("location: index.php?omat_aanestykset");
+		}
+	}
+	
+	/**
+	 * Käsittelee pyynnön luoda uuden äänestyksen.
+	 * @return Tyhjä merkkijono, jos luominen onnistuu. Muutoin virheilmoitus.
+	 */
+	function kasitteleUudenAanestyksenLuomispyynto() {
+		
+		if(isset($_POST['uuden_aanestyksen_luominen'])) {
+		
+			$vaihtoehdot = array();
+			for($i = 1; $i <= 5 && isset($_POST['vaihtoehto_' . $i]); $i++) {
+				if($_POST['vaihtoehto_' . $i] == "")
+					continue;
+				array_push($vaihtoehdot, array($_POST['vaihtoehto_' . $i], $_POST['kuvaus_' . $i]));
+			}
+			
+			$virhe = luoAanestys($_POST['nimi'], $_POST['kuvaus'], $_POST['voimassa'], $vaihtoehdot);
+			if($virhe != "")
+				return $virhe;
+				
+			header("location: index.php?omat_aanestykset");
+		}
+	}
+	
+	/**
 	 * Käsittelee käyttäjän lähettämät pyynnöt.
 	 */
 	function kasittelePyynnot() {
 		global $kirjautumisVirhe;
 		global $rekisteroitymisVirhe;
 		global $aanestamisVirhe;
+		global $aanestyksenluontiVirhe;
 
-		$kirjautumisVirhe =     kasitteleSisaankirjautumispyynto();
-		                        kasitteleUloskirjautumispyynto();
-		$rekisteroitymisVirhe = kasitteleRekisteroitymispyynto();
-		$aanestamisVirhe =      kasitteleAanestamispyynto();
+		$kirjautumisVirhe =       kasitteleSisaankirjautumispyynto();
+		                          kasitteleUloskirjautumispyynto();
+		$rekisteroitymisVirhe =   kasitteleRekisteroitymispyynto();
+		$aanestamisVirhe =        kasitteleAanestamispyynto();
+		$aanestyksenluontiVirhe = kasitteleUudenAanestyksenLuomispyynto();
+								   kasitteleAanestyksenPoistopyynto();
 	}
 ?>

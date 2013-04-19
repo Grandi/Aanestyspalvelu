@@ -1,125 +1,4 @@
 <?php 
-
-	/**
-	 * Lyhentää kuvausta listauksessa, jos se on liian pitkä.
-	 * @param $tiedot Äänestyksen merkkijonotyyppinen kuvaus.
-	 */
-	function lyhennettyKuvaus($kuvaus) {
-		if(strlen($kuvaus) < 255)
-			return $kuvaus;
-			
-		return substr($kuvaus, 0, 255) . " <i>(...)</i>";
-	}
-
-	/**
-	 * Listaa yksittäisen äänestyksen sivulle.
-	 * @param $tiedot Äänestyksen tiedot taulukkomuodossa.
-	 */
-	function listaaAanestys($tiedot) {
-		echo '
-		<div id="aanestys_listassa">
-			<h3><a href="?aanestys='.$tiedot["id"].'" style="font-weight:bolder;">'.$tiedot["nimi"].'</a></h3>
-			<p style="width:100%;">'.lyhennettyKuvaus($tiedot["kuvaus"]).'</p>
-			<!--<td>Tekijä:&nbsp;<b>'.$tiedot["tekija"].'</b></td>
-			<td>'.$tiedot["luontiaika"].'</td>
-			<td>'.$tiedot["paattymispaiva"].'</td>-->
-		</div>';
-	}
-
-	/**
-	 * Listaa tietokannassa olevat äänestykset.
-	 */
-	function listaaAanestykset() {
-	
-		$kysely = lahetaSQLKysely("SELECT * FROM aanestys ORDER BY luontiaika DESC");
-		while($rivi = $kysely->fetch())
-			listaaAanestys($rivi);
-	}
-	
-	/**
-	 * Näyttää äänestyssivun sisällön.
-	 * @param $aanestysID Se äänestys, jota tahdotaan tarkastella.
-	 */
-	function naytaAanestyssivu($aanestysID) {
-	
-		global $aanestamisVirhe;
-		if($aanestamisVirhe != "")
-			echo '<p id="virhepalkki">Virhe: '. $aanestamisVirhe .'</p>';
-		
-		$kysely = lahetaSQLKysely("
-			SELECT nimi, kuvaus, tekija,
-				to_char(luontiaika, 'DD.MM.YYYY kello HH24:MI') as luontiaika,
-				to_char(paattymispaiva, 'DD.MM.YYYY kello HH24:MI') as paattymispaiva
-			FROM aanestys WHERE id = ?",
-			array($aanestysID));
-		
-		if($kysely->rowCount() == 0)
-			die("<h2>404</h2><p>Hakemaasi äänestystä ei löydy tietokannasta. <a href=\"index.php\">Palaa etusivulle</a>.</p>");
-		$tiedot = $kysely->fetch();
-		
-		echo '
-			<h2>Äänestys: \''.$tiedot["nimi"].'\'</h2>
-			<p><b>Kuvaus:</b> '.$tiedot["kuvaus"].'</p>';
-		
-		naytaAanestyksenTulokset($aanestysID, kayttajanAanestamaVaihtoehto($aanestysID));
-		
-		echo '<br />
-			<p style="text-align:left;">
-				<b>Tekijä: </b> '.$tiedot["tekija"].'<br />
-				<b>Luotu: </b> '.$tiedot["luontiaika"].'<br />
-				<b>Päättyy: </b> '.$tiedot["paattymispaiva"].'
-			</p>';
-	}
-	
-	/**
-	 * Kertoo käyttäjän äänestämän vaihtoehdon.
-	 * @param $aanestys Se äänestys, johon hänen oletetaan äänestäneen.
-	 * @return False, mikäli ei ole äänestänyt, muutoin äänestysvaihtoehdon id.
-	 */
-	function kayttajanAanestamaVaihtoehto($aanestys) {
-		
-		if(!isset($_SESSION['kayttajanimi']))
-			return false;
-			
-		$kysely = lahetaSQLKysely("
-			SELECT * FROM aani WHERE aanestaja = ? AND aanestys = ?",
-			array($_SESSION['kayttajanimi'], $aanestys)
-		);
-		
-		if($kysely->rowCount() == 0)
-			return false;
-
-		$tiedot = $kysely->fetch();
-		return $tiedot['vaihtoehto'];
-	}
-	
-	/**
-	 * Näyttää yksittäisen äänestysvaihtoehdon.
-	 * @param $tiedot Äänestysvaihtoehdon tiedot.
-	 * @param $onAanestetty Kertoo, onko katselija jo äänestänyt äänestyksessä.
-	 * @param $vertailukohta Eniten ääniä saaneen vaihtoehdon äänet,
-		jotta palkista saadaan sopivan pituinen.
-	 */
-	function naytaAanestysvaihtoehto($tiedot, $onAanestetty, $vertailukohta) {
-		
-		$palkinPituus = $vertailukohta == 0 ? 10 : ($tiedot["aanestyskerrat"] / $vertailukohta) * 300 + 10;
-		if($onAanestetty == $tiedot["id"])
-			$tiedot['nimi'] = '<b>'.$tiedot['nimi'].'</b>';
-		
-		echo '
-			<tr>
-				<td style="width:100%;">
-					<a href="javascript:naytaTaiPiilota(\'kuvaus_'.$tiedot['id'].'\')">'. $tiedot['nimi'] . '</a>
-					<div id="kuvaus_'.$tiedot['id'].'" style="display:none;">('.$tiedot['kuvaus'].')</div>
-				</td>
-				<td style="width:20px;">'. $tiedot["aanestyskerrat"] .'</td>';
-		
-		if($onAanestetty === false && isset($_SESSION['kayttajanimi']))
-			echo '<td><input name="vaihtoehdot" value="'.$tiedot['id'].'" type="radio" /></td>';
-
-		echo '	<td style="width:300px;"><div style="background:red; width:'.$palkinPituus.'px; height:10px;"></div></td>
-			</tr>';
-	}
 	
 	/**
 	 * Tarkistaa mikä annetuista vaihtoehdoista sai eniten ääniä.
@@ -136,50 +15,41 @@
 	}
 	
 	/**
+	 * Kertoo käyttäjän äänestämän vaihtoehdon.
+	 * @param $aanestys Se äänestys, johon hänen oletetaan äänestäneen.
+	 * @return False, mikäli ei ole äänestänyt, muutoin äänestysvaihtoehdon id.
+	 */
+	function kayttajanAanestamaVaihtoehto($aanestys) {
+		
+		if(!isset($_SESSION['kayttajanimi']))
+			return false;
+			
+		$kysely = lahetaSQLKysely("
+			SELECT * FROM aani WHERE aanestaja = ? AND aanestys = ?",
+			array($_SESSION['kayttajanimi'], $aanestys));
+		
+		if($kysely->rowCount() == 0)
+			return false;
+
+		$tiedot = $kysely->fetch();
+		return $tiedot['vaihtoehto'];
+	}
+	
+	/**
 	 * Kertoo, onko äänestys vielä voimassa.
 	 * @param $aanestys Äänestys, jonka voimassaolemisesta ollaan kiinnostuneita.
 	 * @return True tai false.
 	 */
 	function aanestysOnVielaVoimassa($aanestys) {
 		
-		$kysely = lahetaSQLKysely("SELECT * FROM aanestys WHERE id = ? AND paattymispaiva > now()", array($aanestys));
-		return $kysely->rowCount() > 0;
-	}
-	
-	/**
-	 * Näyttää äänestysvaihtoehdot ja niiden saamat äänet.
-	 * @param $äänestys Äänestys, jota olemme kiinnostuneita tarkastelemaan.
-	 * @param $aanestettyVaihtoehto Se vaihtoehto, jota tarkastelija on jo äänestänyt. False, jos ei ole äänestänyt.
-	 */
-	function naytaAanestyksenTulokset($aanestys, $aanestettyVaihtoehto = false) {
-		
 		$kysely = lahetaSQLKysely("
-			SELECT * FROM aanestysvaihtoehto WHERE aanestys = ?",
+			SELECT * FROM aanestys
+			WHERE
+				id = ? AND
+				paattymispaiva > now()",
 			array($aanestys));
-		
-		$vaihtoehdot = $kysely->fetchAll();
-		$enitenAaniaSaanut = laskeEnitenAaniaSaanut($vaihtoehdot);
-		
-		echo '
-		<form id="aanestyslaatikko" method="post">
-			<input name="aanestaminen" type="hidden" value="'.$aanestys.'" />
-			<table>';
-			
-		foreach($vaihtoehdot as &$vaihtoehto)
-			naytaAanestysvaihtoehto($vaihtoehto, $aanestettyVaihtoehto, $enitenAaniaSaanut);
-	
-		echo '</table>';
-		
-		if(!aanestysOnVielaVoimassa($aanestys))
-			echo '<i>Äänestysaika on umpeutunut.</i>';
-		else if($aanestettyVaihtoehto === false) {
-			if(isset($_SESSION['kayttajanimi']))
-				echo '<input type="submit" value="Äänestä!" style="margin-left:auto;width:75px;display:block;" />';
-			else
-				echo '<i><br />Kirjaudu sisään äänestääksesi.</i>';
-		} else
-			echo '<i><br />Olet äänestänyt.</i>';
-		echo '</form>';
+
+		return $kysely->rowCount() > 0;
 	}
 	
 	/**
@@ -190,14 +60,133 @@
 	 */
 	function aanesta($aanestys, $vaihtoehto) {
 		
-		$kysely = lahetaSQLKysely("
-			INSERT INTO aani (aanestys, vaihtoehto, aanestaja) VALUES (?, ?, ?);",
+		lahetaSQLKysely("
+			INSERT INTO aani (aanestys, vaihtoehto, aanestaja, paivamaara)
+			VALUES (?, ?, ?, current_date);",
 			array($aanestys, $vaihtoehto, $_SESSION['kayttajanimi']));
 
-		$kysely = lahetaSQLKysely("
+		lahetaSQLKysely("
 			UPDATE aanestysvaihtoehto
 				SET aanestyskerrat = aanestyskerrat + 1
-				WHERE id = ?;",
-			array($vaihtoehto));
+				WHERE id = ? AND aanestys = ?",
+			array($vaihtoehto, $aanestys));
+	}
+	
+	/**
+	 * Tarkistaa yksittäisen äänestysvaihtoehdon kelpoisuuden.
+	 * @param $vaihtoehto Vaihtoehto taulukkomuodossa. Ensimmäinen indeksi on nimi, toinen on kuvaus.
+	 * @param $numerointi Kuinka mones tämä vaihtoehto on äänestyksessä. Käytetään virheilmoituksien selkeyttämiseen.
+	 * @return Tyhjä merkkijono, mikäli äänestysvaihtoehto on validi. Muutoin virheilmoitus.
+	 */
+	function tarkistaAanestysvaihtoehdonKelpoisuus($vaihtoehto, $numerointi) {
+
+		if(strlen($vaihtoehto[0]) > 32)
+			return "Äänestysvaihtoehdolla " . $numerointi . " on liian pitkä nimi!";
+
+		if(strlen($vaihtoehto[1]) > 128)
+			return "Äänestysvaihtoehdon " . $numerointi . " kuvaus on liian pitkä!";
+
+		return "";
+	}
+	
+	/**
+	 * Tarkistaa, onko äänestys sellainen, että se voidaan luoda tietokantaan.
+	 * @param $nimi Äänestyksen nimi.
+	 * @param $kuvaus Äänestyksen kuvaus.
+	 * @param $voimassa Kuinka monta päivää äänestys on voimassa.
+	 * @param $vaihtoehdot Taulukko äänestykselle lisättävistä vaihtoehdoista.
+	 * @return Tyhjä merkkijono, mikäli äänestyksen voisi luoda. Muutoin virheilmoitus.
+	 */
+	function tarkistaAanestyksenKelpoisuus($nimi, $kuvaus, $voimassa, $vaihtoehdot) {
+		
+		if($nimi == "") 		 return "Äänestykselle on annettava nimi!";
+		if(strlen($nimi) > 128) return "Äänestyksen nimi on liian pitkä!";
+			
+		if($voimassa < 1)
+			return "Voimassaolopäiviä on oltava vähintään yksi!";
+			
+		if(count($vaihtoehdot) < 2) return "Vaihtoehtoja pitää antaa vähintään kaksi.";
+		if(count($vaihtoehdot) > 5) return "Vaihtoehtoja voi olla enintään viisi.";
+		
+		$numerointi = 1;
+		foreach($vaihtoehdot as $vaihtoehto) {
+			$kelpous = tarkistaAanestysvaihtoehdonKelpoisuus($vaihtoehto, $numerointi);
+			if($kelpous != "")
+				return $kelpous;
+			$numerointi++;
+		}
+		
+		return "";
+	}
+	
+	/**
+	 * Lisää annetut vaihtoehdot sisäänkirjautuneen käyttäjän uusimpaan äänestykseen.
+	 * @param $vaihtoehdot Taulukko, joka sisältää lisättävät vaihtoehdot.
+	 */
+	function lisaaVaihtoehdotAanestykseen($vaihtoehdot) {
+	
+		$kysely = lahetaSQLKysely("
+			SELECT MAX(aanestys.id) AS uusin FROM aanestys
+			WHERE aanestys.tekija = ?
+			GROUP BY aanestys.tekija",
+			array($_SESSION['kayttajanimi']));
+
+		$rivi = $kysely->fetch();
+		$uusin = intval($rivi["uusin"]);
+		
+		$numerointi = 0;
+		foreach($vaihtoehdot as $vaihtoehto)
+			lahetaSQLKysely("
+				INSERT INTO aanestysvaihtoehto (id, aanestys, nimi, kuvaus, aanestyskerrat)
+				SELECT ?, ?, ?, ?, 0",
+				array($numerointi++, $uusin,
+					htmlspecialchars($vaihtoehto[0]),
+					htmlspecialchars($vaihtoehto[1])));
+	}
+	
+	/**
+	 * Luo uuden äänestyksen tietokantaan.
+	 * @param $nimi Äänestyksen nimi.
+	 * @param $kuvaus Äänestyksen kuvaus.
+	 * @param $voimassa Määrä päiviä, jonka äänestys on voimassa.
+	 * @param $vaihtoehdot Taulukko, joka sisältää äänestysvaihtoehdot.
+	 * @return Tyhjä merkkijono, jos luonti onnistuu. Muutoin virheilmoitus.
+	 */
+	function luoAanestys($nimi, $kuvaus, $voimassa, $vaihtoehdot) {
+		
+		$virhe = tarkistaAanestyksenKelpoisuus($nimi, $kuvaus, $voimassa, $vaihtoehdot);
+		if($virhe != "")
+			return $virhe;
+			
+		lahetaSQLKysely("
+			INSERT INTO aanestys
+				(nimi, kuvaus, tekija, luontiaika, paattymispaiva) VALUES
+				(?, ?, ?, current_timestamp, current_timestamp + interval '" . $voimassa ." days')",
+			array(htmlspecialchars($nimi), htmlspecialchars($kuvaus), $_SESSION['kayttajanimi']));
+
+		lisaaVaihtoehdotAanestykseen($vaihtoehdot);
+		return "";
+	}
+	
+	/**
+	 * Poistaa äänestyksen ja kaiken siihen liittyvän datan.
+	 * @param $aanestysID poistettavan äänestyksen ID.
+	 */
+	function poistaAanestys($aanestysID) {
+		
+		lahetaSQLKysely("
+			DELETE FROM aani WHERE aanestys = ?",
+			array($aanestysID));
+		
+		lahetaSQLKysely("
+			DELETE FROM aanestysvaihtoehto WHERE aanestys = ?",
+			array($aanestysID));
+
+		lahetaSQLKysely("
+			DELETE FROM aanestys WHERE id = ?",
+			array($aanestysID));
+		
+		if(file_exists("loppuraportit/" . $aanestysID . ".png"))
+			unlink("loppuraportit/" . $aanestysID . ".png");
 	}
 ?>

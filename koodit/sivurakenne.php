@@ -8,30 +8,38 @@
 	</head>
 	<body>
 		<h1>Äänestyspalvelu</h1>
-		<!--<div id="linkkipalkki">
+		<div id="linkkipalkki">
+			<a href="index.php">Selaa äänestyksiä</a>
 			<div style="clear: both"></div>
-		</div>-->
+		</div>
 		<div id="sisalto">
 			<?php
-				if(isset($_GET['aanestys']))
+
+				if(isset($_GET['luonti']))
+					include 'lomakkeet/aanestyksenluontilomake.php';
+				
+				else if(isset($_GET['aanestys']))
 					naytaAanestyssivu($_GET['aanestys']);
+				
 				else if(isset($_GET['rekisteroidy']))
 					include "lomakkeet/rekisteroitymislomake.php";
-				else {
+				
+				else if(isset($_GET['omat_aanestykset'])) {
+					echo '<h2>Tekemäsi äänestykset</h2>';
+					listaaKayttajanOmatAanestykset();
+
+				} else {
 					echo '<h2>Äänestykset</h2>';
 					listaaAanestykset();
 				}
+
 			?>
 		</div>
-		<div id="sivupalkki">
-			<?php
-				if(isset($_SESSION["kayttajanimi"])) {
-					echo '<h3>Kirjauduttu käyttäjäksi <i>' . $_SESSION["kayttajanimi"] . '</i></h3>';
-					echo '<a href="?kirjaudu_ulos">Kirjaudu ulos</a>';
-				} else
-					include "lomakkeet/kirjautumislomake.php";
-			?>
-		</div>
+		
+		<?php
+			include "koodit/sivupalkki.php"
+		?>
+		
 		<div style="clear: both"></div>
 		<div id="footer"></div>
 	</body>

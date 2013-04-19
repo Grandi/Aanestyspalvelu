@@ -34,6 +34,7 @@ h1 {
     height: 100%;
     border: 1px solid #ddddaa;
 	margin-bottom: 20px;
+	width:100%;
 }
 
 #sisalto {
@@ -66,11 +67,17 @@ h1 {
     padding: 10px;
     padding-top: 20px;
     margin-top: 25px;
-	border: 1px solid red;
+	border: 1px solid #eeaaaa;
 }
 
 a {
-	color: #0000EE;
+	color: #3333FF;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #000088;
+	text-decoration: underline;
 }
 
 #aanestyslaatikko h2 {
@@ -80,11 +87,11 @@ a {
 
 #aanestyslaatikko td {
     padding: 5px;
-    padding-top: 2px;
-    padding-bottom: 2px;
+    padding-top: 4px;
+    padding-bottom: 4px;
 }
 
-input {
+input, textarea {
     border: 1px solid #888888;
     padding: 4px;
     background: #eeeeee;
@@ -102,6 +109,20 @@ input {
 	padding-left: 20px;
 	background: rgb(230,255,230);
 	margin-bottom: 10px;
+}
+
+#vanhentunut_aanestys_listassa {
+	padding: 5px;
+	padding-left: 20px;
+	background: rgb(255,230,230);
+	margin-bottom: 10px;
+}
+
+#aanestyspalkki {
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+	height: 10px;
 }
 
 table {
