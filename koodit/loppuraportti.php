@@ -131,38 +131,4 @@
 		
 		return $sijainti;
 	}
-	
-    /*function generoiTestiaanestys() {
-	
-		lahetaSQLKysely("
-			INSERT INTO aanestys (id, nimi, kuvaus, tekija, luontiaika, paattymispaiva) VALUES
-				(-1, 'Lorem ipsum dolor sit amet', 'Aliquam condimentum aliquet elit in sollicitudin. Nulla at odio et magna luctus lacinia vel nec tellus.', 'Grandi',
-				current_timestamp - interval '3 days', current_timestamp - interval '2 days')");
-
-		$vaihtoehdot = array(
-			array("Aenean congue", "Suspendisse et eros nec tellus aliquam semper eget eu lacus."),
-			array("Maecenas", "Phasellus ornare tortor et arcu congue quis pulvinar urna hendrerit."),
-			array("Pulvinar dignissim", "Duis posuere vestibulum erat in interdum."),
-			array("Quisque", "Morbi ligula tellus, condimentum non volutpat sed, dapibus ut diam."));
-		
-		lisaaVaihtoehdotAanestykseen($vaihtoehdot);
-		
-		for($i = 0; $i < 50; $i++) {
-			
-			$vaihtoehto = rand(0, count($vaihtoehdot) - 1);
-			$aanestysaika = date("j.n.Y", time() + rand(1, 31) * (60 * 60 * 24));
-
-			lahetaSQLKysely("
-				INSERT INTO aani (aanestys, vaihtoehto, aanestaja, paivamaara)
-				VALUES (-1, ?, 'Grandi', ?);",
-				array($vaihtoehto, $aanestysaika));
-
-			lahetaSQLKysely("
-				UPDATE aanestysvaihtoehto
-					SET aanestyskerrat = aanestyskerrat + 1
-					WHERE id = ? AND aanestys = -1",
-				array($vaihtoehto));
-		}
-	}*/
-	
 ?>
