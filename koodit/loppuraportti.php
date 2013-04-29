@@ -122,8 +122,8 @@
 	 */
 	function haeLoppuraportti($aanestys) {
 
-        if(!file_exists("loppuraportit"))
-            mkdir("loppuraportit");
+		if(!file_exists("loppuraportit"))
+			mkdir("loppuraportit");
 	
 		$sijainti = "loppuraportit/".$aanestys.".png";
 		if(!file_exists($sijainti))
